@@ -76,7 +76,6 @@ footer{font-size:12px;color:var(--muted);margin-top:24px}
     <label class="lbl" for="sort">排序</label>
     <select id="sort">
       <option value="pub">出版社（作品多→少）</option>
-      <option value="list">試算表順序</option>
       <option value="name">名稱</option>
       <option value="rating">BGG 評分</option>
       <option value="weight">重度（重→輕）</option>
@@ -215,7 +214,8 @@ function render(){
     if(state.q && ![g.name,g.publisher,g.pub,g.note,...g.types].join(' ').toLowerCase().includes(state.q)) return false;
     return true;
   });
-  const key={pub:(a,b)=>PUB_RANK[a.pub]-PUB_RANK[b.pub] || a.order-b.order, list:(a,b)=>a.order-b.order, name:(a,b)=>a.name.localeCompare(b.name,'zh-Hant'), rating:(a,b)=>b.rating-a.rating, weight:(a,b)=>b.weight-a.weight, time:(a,b)=>maxTime(b)-maxTime(a)}[state.sort]||((a,b)=>a.order-b.order);
+  if(!['pub','name','rating','weight','time'].includes(state.sort)) state.sort='pub';
+  const key={pub:(a,b)=>PUB_RANK[a.pub]-PUB_RANK[b.pub] || a.order-b.order, name:(a,b)=>a.name.localeCompare(b.name,'zh-Hant'), rating:(a,b)=>b.rating-a.rating, weight:(a,b)=>b.weight-a.weight, time:(a,b)=>maxTime(b)-maxTime(a)}[state.sort]||((a,b)=>a.order-b.order);
   list.sort(key);
   if(document.getElementById('sort').value!==state.sort) document.getElementById('sort').value=state.sort;
   document.getElementById('grid').innerHTML=list.map(card).join('');
