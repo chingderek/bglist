@@ -37,6 +37,7 @@ input[type=search]{flex:1 1 220px}
 .chip{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--felt);color:var(--felt-ink);border-color:var(--felt)}
 .chip.ghost{background:transparent}
+#dir{width:36px;height:36px;padding:0;font-size:18px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
 .chip:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .count{font-size:13px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding-block:16px}
@@ -223,7 +224,7 @@ function render(){
   const main={pub:(a,b)=>PUB_RANK[a.pub]-PUB_RANK[b.pub], name:(a,b)=>a.name.localeCompare(b.name,'zh-Hant'), rating:(a,b)=>b.rating-a.rating, weight:(a,b)=>b.weight-a.weight, time:(a,b)=>maxTime(b)-maxTime(a)}[state.sort];
   const val={rating:g=>g.rating, weight:g=>g.weight, time:maxTime}[state.sort]; // 沒資料的遊戲不論正倒序都排最後
   list.sort((a,b)=> (val ? (!val(a))-(!val(b)) : 0) || s*main(a,b) || a.order-b.order);
-  const d=document.getElementById('dir'); d.textContent=(state.rev?'↑ ':'↓ ')+DIR_LABEL[state.sort][state.rev?1:0]; d.setAttribute('aria-pressed', state.rev);
+  const d=document.getElementById('dir'); d.textContent=state.rev?'↑':'↓'; d.setAttribute('aria-label', (state.rev?'倒序：':'正序：')+DIR_LABEL[state.sort][state.rev?1:0]); d.title=d.getAttribute('aria-label')+'（點一下切換）';
   if(document.getElementById('sort').value!==state.sort) document.getElementById('sort').value=state.sort;
   document.getElementById('grid').innerHTML=list.map(card).join('');
   document.getElementById('shown').textContent=list.length;
