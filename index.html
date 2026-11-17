@@ -75,6 +75,7 @@ footer{font-size:12px;color:var(--muted);margin-top:24px}
     <input type="search" id="q" placeholder="搜尋名稱、出版社、備註…" aria-label="搜尋">
     <label class="lbl" for="sort">排序</label>
     <select id="sort">
+      <option value="pub">出版社（作品多→少）</option>
       <option value="list">試算表順序</option>
       <option value="name">名稱</option>
       <option value="rating">BGG 評分</option>
@@ -113,9 +114,9 @@ const TYPE_ORDER = ['重策','中策','輕策','聚會','陣營','合作','戰�
 const WEIGHT_BINS = [['1','輕度 1–2',w=>w<2],['2','中輕 2–3',w=>w>=2&&w<3],['3','中重 3–4',w=>w>=3&&w<4],['4','重度 4–5',w=>w>=4]];
 const TIME_BINS = [['30','30 分以內',t=>t<=30],['60','31–60 分',t=>t>30&&t<=60],['120','1–2 小時',t=>t>60&&t<=120],['240','2–4 小時',t=>t>120&&t<=240],['999','4 小時以上',t=>t>240]];
 const FIELDS = ['players','ftype','fweight','ftime','fpub','flang'];
-const state = {q:'', best:false, sort:'list', players:'', ftype:'', fweight:'', ftime:'', fpub:'', flang:''};
-try{ const s=JSON.parse(localStorage.getItem('bglist-gh')||'{}'); for(const k in state) if(k in s) state[k]=s[k]; }catch(e){}
-function save(){ try{ localStorage.setItem('bglist-gh',JSON.stringify(state)); }catch(e){} }
+const state = {q:'', best:false, sort:'pub', players:'', ftype:'', fweight:'', ftime:'', fpub:'', flang:''};
+try{ const s=JSON.parse(localStorage.getItem('bglist-gh2')||'{}'); for(const k in state) if(k in s) state[k]=s[k]; }catch(e){}
+function save(){ try{ localStorage.setItem('bglist-gh2',JSON.stringify(state)); }catch(e){} }
 const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 function parseCSV(text){
@@ -150,7 +151,7 @@ function toGame(r, i, H){
   return g;
 }
 
-let DATA=[], maxP=10;
+let DATA=[], maxP=10; const PUB_RANK={};
 const maxTime = g => g.tmax || g.tmin || 0;
 function fill(id, opts){ const sel=document.getElementById(id);
   opts.forEach(([v,l,c])=>{ const o=document.createElement('option'); o.value=v; o.textContent=`${l}（${c}）`; sel.appendChild(o); }); }
@@ -165,6 +166,7 @@ function setup(){
   fill('fweight', WEIGHT_BINS.map(([v,l,f])=>[v,l,cnt(g=>g.weight&&f(g.weight))]));
   fill('ftime', TIME_BINS.map(([v,l,f])=>[v,l,cnt(g=>maxTime(g)&&f(maxTime(g)))]));
   const pubs=[...new Set(DATA.map(g=>g.pub))].sort((a,b)=>(a==='其他')-(b==='其他') || cnt(g=>g.pub===b)-cnt(g=>g.pub===a) || a.localeCompare(b));
+  pubs.forEach((p,i)=>PUB_RANK[p]=i);
   fill('fpub', pubs.map(p=>[p,p,cnt(g=>g.pub===p)]));
   fill('flang', [...new Set(DATA.map(g=>g.lang).filter(Boolean))].map(l=>[l,l,cnt(g=>g.lang===l)]));
   document.getElementById('total').textContent = DATA.length;
@@ -213,8 +215,9 @@ function render(){
     if(state.q && ![g.name,g.publisher,g.pub,g.note,...g.types].join(' ').toLowerCase().includes(state.q)) return false;
     return true;
   });
-  const key={list:(a,b)=>a.order-b.order, name:(a,b)=>a.name.localeCompare(b.name,'zh-Hant'), rating:(a,b)=>b.rating-a.rating, weight:(a,b)=>b.weight-a.weight, time:(a,b)=>maxTime(b)-maxTime(a)}[state.sort]||((a,b)=>a.order-b.order);
+  const key={pub:(a,b)=>PUB_RANK[a.pub]-PUB_RANK[b.pub] || a.order-b.order, list:(a,b)=>a.order-b.order, name:(a,b)=>a.name.localeCompare(b.name,'zh-Hant'), rating:(a,b)=>b.rating-a.rating, weight:(a,b)=>b.weight-a.weight, time:(a,b)=>maxTime(b)-maxTime(a)}[state.sort]||((a,b)=>a.order-b.order);
   list.sort(key);
+  if(document.getElementById('sort').value!==state.sort) document.getElementById('sort').value=state.sort;
   document.getElementById('grid').innerHTML=list.map(card).join('');
   document.getElementById('shown').textContent=list.length;
   document.getElementById('empty').hidden=list.length>0;
