@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>桌遊收藏清單</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: felt-table catalogue — sticky dropdown filter bar over a dense card grid; cards read like boxes on a shelf. */
+:root{
+  --bg:#f1ece2; --surface:#fbf9f4; --ink:#1f2a24; --muted:#5f6b63; --line:#d9d2c3;
+  --felt:#1f5d4a; --felt-ink:#ffffff; --amber:#b8781c; --chip:#e7e1d3;
+  --shadow:0 1px 2px rgba(30,40,30,.08),0 6px 18px rgba(30,40,30,.08);
+  --display:"Noto Serif TC",Georgia,"PMingLiU",serif; --body:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141c18; --surface:#1d2822; --ink:#eae6dc; --muted:#a5b0a8; --line:#2f3d35;
+  --felt:#3f9a7c; --felt-ink:#0f1a15; --amber:#e0a241; --chip:#273630;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35); color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+header.top{padding-block:28px 10px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,38px);margin:0;letter-spacing:.02em}
+.sub{color:var(--muted);margin:4px 0 0;font-size:14px}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lbl{font-size:12px;color:var(--muted);letter-spacing:.08em}
+input[type=search],select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+input[type=search]{flex:1 1 220px}
+.filters{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 10px;align-items:end}
+.f{display:flex;flex-direction:column;gap:3px;min-width:0}
+.f select{width:100%}
+.f select.on{border-color:var(--felt);box-shadow:inset 0 0 0 1px var(--felt)}
+.f.end{flex-direction:row;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--felt);color:var(--felt-ink);border-color:var(--felt)}
+.chip.ghost{background:transparent}
+.chip:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.count{font-size:13px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding-block:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;min-width:0}
+.cover{aspect-ratio:1/1;max-width:100%;background:var(--chip);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.cover img{width:100%;height:100%;object-fit:contain;display:block}
+.cover .noimg{font-family:var(--display);font-size:18px;color:var(--muted);padding:12px;text-align:center}
+.cover .lang{position:absolute;top:8px;left:8px;background:var(--felt);color:var(--felt-ink);font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px}
+.cover .exp{position:absolute;top:8px;right:8px;background:var(--amber);color:#1f2a24;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
+.body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.name{font-family:var(--display);font-weight:700;font-size:16px;line-height:1.3;margin:0}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:11px;background:var(--chip);border-radius:5px;padding:1px 7px}
+.tag.t-重策{background:var(--felt);color:var(--felt-ink)}
+.meta{font-size:13px;display:grid;grid-template-columns:auto 1fr;gap:1px 8px;font-variant-numeric:tabular-nums}
+.meta b{font-weight:500;color:var(--muted)}
+.wbar{height:5px;background:var(--chip);border-radius:3px;overflow:hidden}
+.wbar i{display:block;height:100%;background:linear-gradient(90deg,var(--felt),var(--amber))}
+.note{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px;margin-top:auto;overflow-wrap:anywhere}
+.pubname{font-size:11px;color:var(--muted)}
+.empty,.status{padding:40px;text-align:center;color:var(--muted)}
+footer{font-size:12px;color:var(--muted);margin-top:24px}
+@media (max-width:480px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}.body{padding:8px}.name{font-size:14px}}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .15s}.card:hover{transform:translateY(-2px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1>桌遊收藏清單</h1>
+  <p class="sub">共 <span id="total">…</span> 款 ・ 可依人數、類別、重度、遊玩時間、出版社、語言篩選；資料即時讀取自 Google 試算表</p>
+</header>
+
+<div class="bar">
+  <div class="row">
+    <input type="search" id="q" placeholder="搜尋名稱、出版社、備註…" aria-label="搜尋">
+    <label class="lbl" for="sort">排序</label>
+    <select id="sort">
+      <option value="list">試算表順序</option>
+      <option value="name">名稱</option>
+      <option value="rating">BGG 評分</option>
+      <option value="weight">重度（重→輕）</option>
+      <option value="time">時間（長→短）</option>
+    </select>
+    <span class="count"><span id="shown">0</span> 款</span>
+  </div>
+  <div class="filters">
+    <div class="f"><label class="lbl" for="players">人數</label><select id="players"><option value="">全部</option></select></div>
+    <div class="f"><label class="lbl" for="ftype">類別</label><select id="ftype"><option value="">全部</option></select></div>
+    <div class="f"><label class="lbl" for="fweight">重度</label><select id="fweight"><option value="">全部</option></select></div>
+    <div class="f"><label class="lbl" for="ftime">遊玩時間</label><select id="ftime"><option value="">全部</option></select></div>
+    <div class="f"><label class="lbl" for="fpub">出版社</label><select id="fpub"><option value="">全部</option></select></div>
+    <div class="f"><label class="lbl" for="flang">語言</label><select id="flang"><option value="">全部</option></select></div>
+    <div class="f end">
+      <button class="chip" id="bestonly" type="button" aria-pressed="false" title="只列出最佳人數包含所選人數的遊戲">只看最佳人數</button>
+      <button class="chip ghost" id="reset" type="button">清除篩選</button>
+    </div>
+  </div>
+</div>
+
+<div class="status" id="status">讀取試算表中…</div>
+<div class="grid" id="grid"></div>
+<div class="empty" id="empty" hidden>沒有符合條件的遊戲</div>
+<footer>資料來源：Google 試算表（發布到網路的 CSV）；評分與重度來自 BoardGameGeek。</footer>
+</div>
+
+<script>
+// 試算表代碼：網址可用 ?csv=2PACX-... 指定，否則用預設
+const DEFAULT_CSV = '2PACX-1vRqIRYb_LfALGzmrShlbQ_3TiXcHbt4Fjn8K5-F6sxpzztK7Tr_iT1EjMq4BLCMT1nDcB53TE-gdvRI';
+const code = new URLSearchParams(location.search).get('csv') || DEFAULT_CSV;
+const CSV_URL = code.startsWith('http') ? code : `https://docs.google.com/spreadsheets/d/e/${code}/pub?output=csv`;
+
+const TYPE_ORDER = ['重策','中策','輕策','聚會','陣營','合作','戰棋','美式','單人'];
+const WEIGHT_BINS = [['1','輕度 1–2',w=>w<2],['2','中輕 2–3',w=>w>=2&&w<3],['3','中重 3–4',w=>w>=3&&w<4],['4','重度 4–5',w=>w>=4]];
+const TIME_BINS = [['30','30 分以內',t=>t<=30],['60','31–60 分',t=>t>30&&t<=60],['120','1–2 小時',t=>t>60&&t<=120],['240','2–4 小時',t=>t>120&&t<=240],['999','4 小時以上',t=>t>240]];
+const FIELDS = ['players','ftype','fweight','ftime','fpub','flang'];
+const state = {q:'', best:false, sort:'list', players:'', ftype:'', fweight:'', ftime:'', fpub:'', flang:''};
+try{ const s=JSON.parse(localStorage.getItem('bglist-gh')||'{}'); for(const k in state) if(k in s) state[k]=s[k]; }catch(e){}
+function save(){ try{ localStorage.setItem('bglist-gh',JSON.stringify(state)); }catch(e){} }
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function parseCSV(text){
+  const rows=[]; let row=[], f='', q=false;
+  for(let i=0;i<text.length;i++){ const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"') q=true; else if(c===','){row.push(f);f='';}
+    else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';} else if(c!=='\r') f+=c; }
+  if(f||row.length){row.push(f);rows.push(row);}
+  return rows;
+}
+const range = s => { const m=String(s||'').match(/(\d+)\s*[~\-–]\s*(\d+)/); if(m) return [+m[1],+m[2]]; const d=String(s||'').match(/\d+/); return d?[+d[0],+d[0]]:[0,0]; };
+function rangeHas(txt, n){
+  return String(txt||'').split(/[,，、]/).some(p=>{ const m=p.match(/(\d+)\s*[-~–]\s*(\d+)/); if(m) return n>=+m[1]&&n<=+m[2];
+    const s=p.match(/(\d+)\+/); if(s) return n>=+s[1]; const d=p.match(/\d+/); return d?+d[0]===n:false; });
+}
+function toGame(r, i, H){
+  const v = k => (r[H[k]]??'').trim();
+  const [pmin,pmax]=range(v('player')), [tmin,tmax]=range(v('playtime'));
+  const g={order:i, name:v('name'), img:v('imgur'), pmin, pmax, tmin, tmax, types:[], lang:'', pub:'其他', publisher:'', rec:'', best:'', rating:0, weight:0, note:[], exp:/擴充/.test(v('tag'))};
+  v('gametype').split('、').map(x=>x.trim()).filter(Boolean).forEach(t=>{
+    if(t.startsWith('語言:')) g.lang=t.slice(3); else if(t.startsWith('出版:')) g.pub=t.slice(3); else g.types.push(t); });
+  v('description').split('；').map(x=>x.trim()).filter(Boolean).forEach((p,j)=>{
+    let m;
+    if(j===0 && !/^(推薦|最佳|BGG|重度)/.test(p)) g.publisher=p;
+    else if(m=p.match(/^推薦\s*(.+?)\s*人$/)) g.rec=m[1];
+    else if(m=p.match(/^最佳\s*(.+?)\s*人$/)) g.best=m[1];
+    else if(m=p.match(/^BGG\s*([\d.]+)\s*分$/)) g.rating=+m[1];
+    else if(m=p.match(/^重度\s*([\d.]+)$/)) g.weight=+m[1];
+    else g.note.push(p); });
+  g.note=g.note.join('；');
+  return g;
+}
+
+let DATA=[], maxP=10;
+const maxTime = g => g.tmax || g.tmin || 0;
+function fill(id, opts){ const sel=document.getElementById(id);
+  opts.forEach(([v,l,c])=>{ const o=document.createElement('option'); o.value=v; o.textContent=`${l}（${c}）`; sel.appendChild(o); }); }
+const cnt = f => DATA.filter(f).length;
+const playerOk = (g,n) => n===maxP ? g.pmax>=n : n>=g.pmin && n<=g.pmax;
+
+function setup(){
+  maxP = Math.min(10, Math.max(1,...DATA.map(g=>g.pmax)));
+  fill('players', Array.from({length:maxP},(_,i)=>i+1).map(n=>[String(n), n===maxP?`${n} 人以上`:`${n} 人`, cnt(g=>playerOk(g,n))]));
+  const types = TYPE_ORDER.filter(t=>DATA.some(g=>g.types.includes(t))).concat([...new Set(DATA.flatMap(g=>g.types))].filter(t=>!TYPE_ORDER.includes(t)));
+  fill('ftype', types.map(t=>[t,t,cnt(g=>g.types.includes(t))]));
+  fill('fweight', WEIGHT_BINS.map(([v,l,f])=>[v,l,cnt(g=>g.weight&&f(g.weight))]));
+  fill('ftime', TIME_BINS.map(([v,l,f])=>[v,l,cnt(g=>maxTime(g)&&f(maxTime(g)))]));
+  const pubs=[...new Set(DATA.map(g=>g.pub))].sort((a,b)=>(a==='其他')-(b==='其他') || cnt(g=>g.pub===b)-cnt(g=>g.pub===a) || a.localeCompare(b));
+  fill('fpub', pubs.map(p=>[p,p,cnt(g=>g.pub===p)]));
+  fill('flang', [...new Set(DATA.map(g=>g.lang).filter(Boolean))].map(l=>[l,l,cnt(g=>g.lang===l)]));
+  document.getElementById('total').textContent = DATA.length;
+  const q=document.getElementById('q'), bo=document.getElementById('bestonly'), so=document.getElementById('sort');
+  q.value=state.q; bo.setAttribute('aria-pressed',state.best); so.value=state.sort;
+  FIELDS.forEach(id=>{ const el=document.getElementById(id); el.value=state[id]; if(el.value!==state[id]){el.value='';state[id]='';}
+    el.addEventListener('change',()=>{state[id]=el.value;save();render();}); });
+  q.addEventListener('input',()=>{state.q=q.value.trim().toLowerCase();save();render();});
+  bo.addEventListener('click',()=>{state.best=!state.best;bo.setAttribute('aria-pressed',state.best);save();render();});
+  so.addEventListener('change',()=>{state.sort=so.value;save();render();});
+  document.getElementById('reset').addEventListener('click',()=>{ FIELDS.forEach(id=>{state[id]='';document.getElementById(id).value='';});
+    state.q='';q.value='';state.best=false;bo.setAttribute('aria-pressed',false);save();render(); });
+}
+
+function card(g){
+  const w = g.weight ? Math.round(g.weight/5*100) : 0;
+  const t = !maxTime(g) ? '—' : (g.tmin===g.tmax ? `${g.tmin} 分` : `${g.tmin}–${g.tmax} 分`);
+  return `<article class="card">
+  <div class="cover">${g.img?`<img src="${esc(g.img)}" alt="${esc(g.name)} 封面" loading="lazy" referrerpolicy="no-referrer">`:`<div class="noimg">${esc(g.name)}</div>`}
+    ${g.lang?`<span class="lang">${esc(g.lang)}</span>`:''}${g.exp?'<span class="exp">擴充</span>':''}</div>
+  <div class="body">
+    <h3 class="name">${esc(g.name)}</h3>
+    <div class="tags">${g.types.map(t=>`<span class="tag t-${esc(t)}">${esc(t)}</span>`).join('')}</div>
+    <div class="meta">
+      <b>人數</b><span>${g.pmin?(g.pmin===g.pmax?g.pmin:`${g.pmin}–${g.pmax}`):'—'}${g.best?` ・ 最佳 ${esc(g.best)}`:''}</span>
+      <b>時間</b><span>${t}</span>
+      <b>評分</b><span>${g.rating||'—'}</span>
+      <b>重度</b><span>${g.weight||'—'}</span>
+    </div>
+    <div class="wbar" title="重度 ${g.weight||'—'} / 5"><i style="width:${w}%"></i></div>
+    ${g.note?`<div class="note">${esc(g.note)}</div>`:''}
+    <div class="pubname">${esc(g.publisher||g.pub)}</div>
+  </div></article>`;
+}
+
+function render(){
+  const n=parseInt(state.players,10);
+  const wb=WEIGHT_BINS.find(b=>b[0]===state.fweight), tb=TIME_BINS.find(b=>b[0]===state.ftime);
+  const list=DATA.filter(g=>{
+    if(state.ftype && !g.types.includes(state.ftype)) return false;
+    if(state.flang && g.lang!==state.flang) return false;
+    if(state.fpub && g.pub!==state.fpub) return false;
+    if(wb && !(g.weight && wb[2](g.weight))) return false;
+    if(tb && !(maxTime(g) && tb[2](maxTime(g)))) return false;
+    if(n){ if(state.best ? !(rangeHas(g.best,n) || (n===maxP && /\+/.test(g.best))) : !playerOk(g,n)) return false; }
+    if(state.q && ![g.name,g.publisher,g.pub,g.note,...g.types].join(' ').toLowerCase().includes(state.q)) return false;
+    return true;
+  });
+  const key={list:(a,b)=>a.order-b.order, name:(a,b)=>a.name.localeCompare(b.name,'zh-Hant'), rating:(a,b)=>b.rating-a.rating, weight:(a,b)=>b.weight-a.weight, time:(a,b)=>maxTime(b)-maxTime(a)}[state.sort]||((a,b)=>a.order-b.order);
+  list.sort(key);
+  document.getElementById('grid').innerHTML=list.map(card).join('');
+  document.getElementById('shown').textContent=list.length;
+  document.getElementById('empty').hidden=list.length>0;
+  FIELDS.forEach(id=>document.getElementById(id).classList.toggle('on',!!state[id]));
+}
+
+fetch(CSV_URL).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }).then(text=>{
+  const rows=parseCSV(text.replace(/^﻿/,'')).filter(r=>r.some(c=>c.trim()));
+  const H={}; rows[0].forEach((h,i)=>H[h.trim().toLowerCase()]=i);
+  DATA=rows.slice(1).map((r,i)=>toGame(r,i,H)).filter(g=>g.name);
+  document.getElementById('status').hidden=true;
+  setup(); render();
+}).catch(e=>{
+  document.getElementById('status').textContent='無法讀取試算表（'+e.message+'）。請確認試算表已「發布到網路」為 CSV，且網址的 csv= 代碼正確。';
+});
+</script>
+</body>
+</html>
