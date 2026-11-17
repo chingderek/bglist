@@ -165,7 +165,7 @@ function setup(){
   fill('ftype', types.map(t=>[t,t,cnt(g=>g.types.includes(t))]));
   fill('fweight', WEIGHT_BINS.map(([v,l,f])=>[v,l,cnt(g=>g.weight&&f(g.weight))]));
   fill('ftime', TIME_BINS.map(([v,l,f])=>[v,l,cnt(g=>maxTime(g)&&f(maxTime(g)))]));
-  const pubs=[...new Set(DATA.map(g=>g.pub))].sort((a,b)=>(a==='其他')-(b==='其他') || cnt(g=>g.pub===b)-cnt(g=>g.pub===a) || a.localeCompare(b));
+  const pubs=[...new Set(DATA.map(g=>g.pub))].sort((a,b)=>(a==='其他')-(b==='其他') || cnt(g=>g.pub===b)-cnt(g=>g.pub===a) || (!/^[A-Za-z0-9]/.test(a))-(!/^[A-Za-z0-9]/.test(b)) || a.localeCompare(b,'en',{sensitivity:'base'}));
   pubs.forEach((p,i)=>PUB_RANK[p]=i);
   fill('fpub', pubs.map(p=>[p,p,cnt(g=>g.pub===p)]));
   fill('flang', [...new Set(DATA.map(g=>g.lang).filter(Boolean))].map(l=>[l,l,cnt(g=>g.lang===l)]));
