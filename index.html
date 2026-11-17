@@ -75,12 +75,13 @@ footer{font-size:12px;color:var(--muted);margin-top:24px}
     <input type="search" id="q" placeholder="搜尋名稱、出版社、備註…" aria-label="搜尋">
     <label class="lbl" for="sort">排序</label>
     <select id="sort">
-      <option value="pub">出版社（作品多→少）</option>
+      <option value="pub">出版社作品數</option>
       <option value="name">名稱</option>
       <option value="rating">BGG 評分</option>
-      <option value="weight">重度（重→輕）</option>
-      <option value="time">時間（長→短）</option>
+      <option value="weight">重度</option>
+      <option value="time">遊玩時間</option>
     </select>
+    <button class="chip" id="dir" type="button" title="切換正序／倒序"></button>
     <span class="count"><span id="shown">0</span> 款</span>
   </div>
   <div class="filters">
@@ -113,7 +114,9 @@ const TYPE_ORDER = ['重策','中策','輕策','聚會','陣營','合作','戰�
 const WEIGHT_BINS = [['1','輕度 1–2',w=>w<2],['2','中輕 2–3',w=>w>=2&&w<3],['3','中重 3–4',w=>w>=3&&w<4],['4','重度 4–5',w=>w>=4]];
 const TIME_BINS = [['30','30 分以內',t=>t<=30],['60','31–60 分',t=>t>30&&t<=60],['120','1–2 小時',t=>t>60&&t<=120],['240','2–4 小時',t=>t>120&&t<=240],['999','4 小時以上',t=>t>240]];
 const FIELDS = ['players','ftype','fweight','ftime','fpub','flang'];
-const state = {q:'', best:false, sort:'pub', players:'', ftype:'', fweight:'', ftime:'', fpub:'', flang:''};
+// 每種排序的正序方向標示：[正序, 倒序]
+const DIR_LABEL = {pub:['多→少','少→多'], name:['A→Z','Z→A'], rating:['高→低','低→高'], weight:['重→輕','輕→重'], time:['長→短','短→長']};
+const state = {q:'', best:false, sort:'pub', rev:false, players:'', ftype:'', fweight:'', ftime:'', fpub:'', flang:''};
 try{ const s=JSON.parse(localStorage.getItem('bglist-gh2')||'{}'); for(const k in state) if(k in s) state[k]=s[k]; }catch(e){}
 function save(){ try{ localStorage.setItem('bglist-gh2',JSON.stringify(state)); }catch(e){} }
 const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -175,7 +178,8 @@ function setup(){
     el.addEventListener('change',()=>{state[id]=el.value;save();render();}); });
   q.addEventListener('input',()=>{state.q=q.value.trim().toLowerCase();save();render();});
   bo.addEventListener('click',()=>{state.best=!state.best;bo.setAttribute('aria-pressed',state.best);save();render();});
-  so.addEventListener('change',()=>{state.sort=so.value;save();render();});
+  so.addEventListener('change',()=>{state.sort=so.value;state.rev=false;save();render();});
+  document.getElementById('dir').addEventListener('click',()=>{state.rev=!state.rev;save();render();});
   document.getElementById('reset').addEventListener('click',()=>{ FIELDS.forEach(id=>{state[id]='';document.getElementById(id).value='';});
     state.q='';q.value='';state.best=false;bo.setAttribute('aria-pressed',false);save();render(); });
 }
@@ -215,8 +219,11 @@ function render(){
     return true;
   });
   if(!['pub','name','rating','weight','time'].includes(state.sort)) state.sort='pub';
-  const key={pub:(a,b)=>PUB_RANK[a.pub]-PUB_RANK[b.pub] || a.order-b.order, name:(a,b)=>a.name.localeCompare(b.name,'zh-Hant'), rating:(a,b)=>b.rating-a.rating, weight:(a,b)=>b.weight-a.weight, time:(a,b)=>maxTime(b)-maxTime(a)}[state.sort]||((a,b)=>a.order-b.order);
-  list.sort(key);
+  const s = state.rev ? -1 : 1; // 倒序只反轉主排序，同組內維持原本順序
+  const main={pub:(a,b)=>PUB_RANK[a.pub]-PUB_RANK[b.pub], name:(a,b)=>a.name.localeCompare(b.name,'zh-Hant'), rating:(a,b)=>b.rating-a.rating, weight:(a,b)=>b.weight-a.weight, time:(a,b)=>maxTime(b)-maxTime(a)}[state.sort];
+  const val={rating:g=>g.rating, weight:g=>g.weight, time:maxTime}[state.sort]; // 沒資料的遊戲不論正倒序都排最後
+  list.sort((a,b)=> (val ? (!val(a))-(!val(b)) : 0) || s*main(a,b) || a.order-b.order);
+  const d=document.getElementById('dir'); d.textContent=(state.rev?'↑ ':'↓ ')+DIR_LABEL[state.sort][state.rev?1:0]; d.setAttribute('aria-pressed', state.rev);
   if(document.getElementById('sort').value!==state.sort) document.getElementById('sort').value=state.sort;
   document.getElementById('grid').innerHTML=list.map(card).join('');
   document.getElementById('shown').textContent=list.length;
