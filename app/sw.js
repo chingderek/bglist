@@ -1,4 +1,4 @@
-// 桌遊 App 離線快取（資料版本 20261120-233842）
+// 桌遊 App 離線快取（資料版本 20261121-023956）
 // 看過的東西都存起來，沒網路也能看；只有在 App 裡按「檢查並更新」才會清掉快取、抓新版。
 const C = 'bgapp-cache';
 self.addEventListener('install', e => self.skipWaiting());
