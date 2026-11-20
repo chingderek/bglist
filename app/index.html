@@ -132,6 +132,28 @@ main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:50;opacity:0;transition:.25s;pointer-events:none;max-width:90vw}
 .toast.on{opacity:.95}
 .empty{text-align:center;color:var(--sub);padding:40px 0}
+/* 規則書與中文規則整理檔 */
+.files{display:grid;gap:8px;margin-top:10px}
+.fold{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.fold summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:17px;font-weight:700;display:flex;align-items:center;gap:12px}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary small{font-weight:400;font-size:13px;color:var(--sub);margin-left:auto}
+.fold summary .ar{transition:.2s;color:var(--sub);font-size:20px}.fold[open] summary .ar{transform:rotate(90deg)}
+.fold .files{margin:0;padding:0 10px 10px}
+.fi{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;width:100%;text-align:left;font-size:15px;line-height:1.4}
+.fold .fi{background:var(--bg)}
+.ft{flex:none;width:38px;height:38px;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;background:#b23b3b}
+.ft.img{background:#3b7bb2}.ft.fd{background:#c99a2e;font-size:18px}
+.fi .fn{flex:1;min-width:0;word-break:break-all}.fi small{display:block;color:var(--sub);font-size:12px}
+.pvwrap{overflow-x:auto;margin:0 -12px;-webkit-overflow-scrolling:touch}
+.pv{margin:0 auto;padding:0 6px}
+.pv .pg{background:#fff;margin:0 auto 10px;box-shadow:0 1px 4px rgba(0,0,0,.18);position:relative}
+.pv .pg canvas,.pv img{display:block;width:100%;height:auto}
+.pv .pg span{position:absolute;inset:0;display:grid;place-items:center;color:#999;font-size:13px}
+.zoom{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:30;display:flex;gap:8px;align-items:center}
+.zoom button{width:46px;height:46px;border-radius:50%;border:0;background:var(--pri2);color:#fff;font-size:22px;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.zoom span{background:rgba(0,0,0,.6);color:#fff;border-radius:10px;padding:4px 9px;font-size:13px}
+.prog{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:14px auto;max-width:320px}.prog i{display:block;height:100%;background:var(--pri2);width:0;transition:width .2s}
 .lock{max-width:360px;margin:60px auto 0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 18px;text-align:center}
 .lock h2{margin:0 0 6px;font-size:19px}
 .lock input{width:100%;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 14px;font-size:17px;margin:14px 0 10px;text-align:center;letter-spacing:.08em}
@@ -229,9 +251,11 @@ async function renderGame(id){const g=LIST.games.find(x=>x.id===id);if(!g){locat
  h+='<div class="dlist">';let lastG=null;
  g.docs.forEach((d,i)=>{if(d.group!==lastG){if(d.group)h+=`<div class="dg">${esc(d.group)}</div>`;lastG=d.group}
   h+=`<button class="db" data-i="${i}"><span class="ic ${d.kind}">${KIC[d.kind]}</span><span>${esc(d.label)}<small>${d.kind==='teach'?'第一次玩從這裡開始':d.kind==='rules'?'依規則書章節，查條文用':d.kind==='aid'?'玩的時候快速查':'整局流程一覽'}</small></span></button>`});
- h+='</div>';if(g.url)h+=`<div class="note"><a href="${esc(g.url)}" target="_blank" rel="noopener" style="color:var(--pri2)">BGG 頁面</a></div>`;
+ h+='</div>';h+=filesHtml(g);if(g.url)h+=`<div class="note"><a href="${esc(g.url)}" target="_blank" rel="noopener" style="color:var(--pri2)">BGG 頁面</a></div>`;
  $('#app').innerHTML=h;scrollTo(0,0);
  document.querySelectorAll('.db').forEach(b=>b.onclick=()=>location.hash='#/g/'+encodeURIComponent(id)+'/'+b.dataset.i);
+ document.querySelectorAll('.fi[data-f]').forEach(b=>b.onclick=()=>location.hash='#/g/'+encodeURIComponent(id)+'/f/'+b.dataset.f);
+ const fo=document.querySelector('.fold');if(fo){fo.open=!!LS.get('foldOpen',false);fo.ontoggle=()=>LS.set('foldOpen',fo.open)}
 }
 let curDocKey=null;
 async function renderDoc(id,i){const g=LIST.games.find(x=>x.id===id);if(!g){location.hash='';return}
@@ -273,19 +297,22 @@ async function renderSet(){setHeader('設定與更新',true);$('#fab').style.dis
  const fs=LS.get('fs',17),th=LS.get('theme','');
  $('#app').innerHTML=`<div class="set"><h3>更新內容</h3><div class="row"><button class="btn p" id="upd">檢查並更新</button></div><div class="note">目前資料版本：${esc(LIST.version)}<br>電腦上執行 sync_app.bat 推送新版後，按這裡就會抓到最新的清單和文件。</div></div>
  <div class="set"><h3>離線使用</h3><div class="row"><button class="btn" id="dlall">下載全部文件與圖片</button></div><div class="note" id="dlnote">看過的文件會自動存下來，沒網路也能看。想全部先存好可按上面（約 95 MB）。<br>已存：<span id="csz">計算中…</span></div></div>
+ <div class="set"><h3>已存的規則書</h3><div class="row"><button class="btn" id="clrbk">清掉已存的規則書</button></div><div class="note">原文規則書與 PDF 看過一次就存在手機裡（不會因為「檢查並更新」被清掉）。空間不夠時可以按這裡清掉，之後要看會重新下載。<br>已存：<span id="bksz">計算中…</span></div></div>
  <div class="set"><h3>分享清單</h3><div class="row"><button class="btn p" id="share">複製清單網址</button></div><div class="note">${esc(SHARE_URL)}<br>按一下就複製，貼給朋友就能看你的桌遊清單（不含規則文件）。</div></div>
  <div class="set"><h3>密碼</h3><div class="row"><button class="btn" id="lockb">鎖住這台手機</button></div><div class="note">清掉這台手機記住的密碼，下次打開要重新輸入。</div></div>
  <div class="set"><h3>字體大小</h3><div class="row"><button class="btn" id="fsm">A−</button><span id="fsv">${fs}px</span><button class="btn" id="fsp">A＋</button></div></div>
  <div class="set"><h3>外觀</h3><div class="row">${[['','跟隨系統'],['light','淺色'],['dark','深色']].map(o=>`<button class="btn${th===o[0]?' p':''}" data-th="${o[0]}">${o[1]}</button>`).join('')}</div></div>`;
  cacheSize().then(s=>{const e=$('#csz');if(e)e.textContent=s||'—'});
- $('#upd').onclick=checkUpdate;$('#share').onclick=()=>copyText(SHARE_URL);$('#lockb').onclick=()=>{try{localStorage.removeItem('bgapp-k')}catch(e){}KEY=null;LIST=null;location.hash='';renderLock('已鎖住。')};$('#dlall').onclick=downloadAll;
+ $('#upd').onclick=checkUpdate;
+ (async()=>{let t='—';try{if(navigator.storage&&navigator.storage.estimate){const c=await caches.open('bgapp-books');const n=(await c.keys()).filter(r=>r.url.includes('/books/')).length;t=n+' 個檔案區塊'}}catch(e){}const e=$('#bksz');if(e)e.textContent=t})();
+ $('#clrbk').onclick=async()=>{try{await caches.delete('bgapp-books')}catch(e){}toast('已清掉已存的規則書');renderSet()};$('#share').onclick=()=>copyText(SHARE_URL);$('#lockb').onclick=()=>{try{localStorage.removeItem('bgapp-k')}catch(e){}KEY=null;LIST=null;location.hash='';renderLock('已鎖住。')};$('#dlall').onclick=downloadAll;
  const setfs=v=>{v=Math.max(13,Math.min(26,v));LS.set('fs',v);applyPrefs();$('#fsv').textContent=v+'px'};
  $('#fsm').onclick=()=>setfs(LS.get('fs',17)-1);$('#fsp').onclick=()=>setfs(LS.get('fs',17)+1);
  document.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>{LS.set('theme',b.dataset.th);applyPrefs();renderSet()});
 }
 async function checkUpdate(){toast('檢查中…');try{const v=await getJSON('version.json?t='+Date.now(),true);
  if(v.version===LIST.version){toast('已經是最新版（'+v.version+'）');return}
- if('caches'in window){for(const k of await caches.keys())await caches.delete(k)}
+ if('caches'in window){for(const k of await caches.keys())if(k!=='bgapp-books')await caches.delete(k)}
  if(navigator.serviceWorker){const r=await navigator.serviceWorker.getRegistration();if(r)await r.update()}
  toast('已更新到 '+v.version+'，重新載入…');setTimeout(()=>location.reload(),600)}catch(e){toast('更新失敗：請確認有網路')}}
 async function downloadAll(){const ids=LIST.games.filter(g=>g.docs.length).map(g=>g.id);let n=0;const note=$('#dlnote');
@@ -294,8 +321,56 @@ async function downloadAll(){const ids=LIST.games.filter(g=>g.docs.length).map(g
   n++;if(note)note.textContent='下載中… '+n+' / '+ids.length}
  LIST.games.forEach(g=>{if(g.img)fetch(g.img,{mode:'no-cors'}).catch(()=>{})});
  if(note)note.textContent='完成：全部 '+ids.length+' 款的文件與圖片都已存在手機上。';toast('下載完成')}
-function route(){if(!LIST||!KEY)return;const h=decodeURIComponent(location.hash||'');let m;curDocKey=null;$('#drawer').classList.remove('on');
+/* ---- 原文規則書／中文規則整理檔：加密分塊放在 GitHub books 分支，下載後解密，PDF 用 pdf.js 畫 ---- */
+const RAW='https://raw.githubusercontent.com/chingderek/bglist/books/f/';
+function mb(n){return n>=1048576?(n/1048576).toFixed(n>=1e8?0:1)+' MB':Math.max(1,Math.round(n/1024))+' KB'}
+function fiHtml(f,key){return `<button class="fi" data-f="${key}"><span class="ft ${f.t==='img'?'img':''}">${f.t==='img'?'圖':'PDF'}</span><span class="fn">${esc(f.n)}<small>${mb(f.s)}${f.c?'｜已轉成 PDF':''}</small></span></button>`}
+function filesHtml(g){const B=g.books||[],Z=g.zh||[];if(!B.length&&!Z.length)return'';let h='';
+ if(B.length)h+=`<details class="fold"><summary><span class="ft fd">📁</span>規則書<small>${B.length} 個檔案</small><span class="ar">›</span></summary><div class="files">`+B.map((f,i)=>fiHtml(f,'b'+i)).join('')+'</div></details>';
+ return `<div class="files" style="margin-top:14px">${h}${Z.map((f,i)=>fiHtml(f,'z'+i)).join('')}</div>`}
+let VIEW=null;
+function closeViewer(){if(!VIEW)return;VIEW.dead=true;try{VIEW.io&&VIEW.io.disconnect()}catch(e){}try{VIEW.pdf&&VIEW.pdf.destroy()}catch(e){}if(VIEW.url)URL.revokeObjectURL(VIEW.url);VIEW=null;const z=$('#zoom');if(z)z.remove()}
+let PDFJS=null;
+function loadPdfJs(){if(PDFJS)return PDFJS;PDFJS=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+ s.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';ok(pdfjsLib)};s.onerror=()=>{PDFJS=null;no(new Error('pdf.js'))};document.head.appendChild(s)});return PDFJS}
+async function fetchFile(f,onp){const parts=[];let got=0;
+ for(let k=0;k<f.k;k++){const r=await fetch(RAW+f.id+'.'+k+'.bin');if(!r.ok)throw new Error('http '+r.status);
+  let buf;if(r.body&&r.body.getReader){const rd=r.body.getReader(),cs=[];let n=0;for(;;){const {done,value}=await rd.read();if(done)break;cs.push(value);n+=value.length;onp(Math.min(1,(got+n)/(f.s+1)))}
+   buf=new Uint8Array(n);let o=0;cs.forEach(c=>{buf.set(c,o);o+=c.length})}else buf=new Uint8Array(await r.arrayBuffer());
+  got+=buf.length;parts.push(await dec(buf.buffer))}
+ return parts}
+async function renderFile(id,k,i){const g=LIST.games.find(x=>x.id===id);const f=g&&(k==='b'?g.books:g.zh)[i];if(!f){location.hash='#/g/'+encodeURIComponent(id);return}
+ setHeader(f.n,true);$('#fab').style.display='none';
+ $('#app').innerHTML=`<div class="empty">下載中…（${mb(f.s)}）<div class="prog"><i id="pbar"></i></div><div class="note">看過一次就會存在手機裡，之後不用再下載。</div></div>`;
+ const V=VIEW={zoom:1};let parts;
+ try{parts=await fetchFile(f,p=>{const b=$('#pbar');if(b&&!V.dead)b.style.width=(p*100).toFixed(1)+'%'})}catch(e){if(!V.dead)$('#app').innerHTML='<div class="empty">下載失敗（離線且還沒看過這個檔？）</div>';return}
+ if(V.dead)return;
+ const blob=new Blob(parts,{type:f.m});parts=null;
+ $('#app').innerHTML='<div class="pvwrap"><div class="pv" id="pv"></div></div>';
+ document.body.insertAdjacentHTML('beforeend','<div class="zoom" id="zoom"><button id="zo">−</button><span id="zl">100%</span><button id="zi">＋</button></div>');
+ const ZL=[1,1.5,2,3];let zi=0;const pv=$('#pv');
+ const setZ=d=>{zi=Math.max(0,Math.min(ZL.length-1,zi+d));V.zoom=ZL[zi];pv.style.width=(V.zoom*100)+'%';$('#zl').textContent=Math.round(V.zoom*100)+'%';if(V.redraw)V.redraw()};
+ $('#zo').onclick=()=>setZ(-1);$('#zi').onclick=()=>setZ(1);
+ if(f.t==='img'){V.url=URL.createObjectURL(blob);pv.innerHTML=`<img src="${V.url}" alt="">`;return}
+ let lib;try{lib=await loadPdfJs()}catch(e){pv.innerHTML='<div class="empty">PDF 閱讀器載入失敗，請連上網路再試一次。</div>';return}
+ const data=new Uint8Array(await blob.arrayBuffer());
+ let pdf;try{pdf=await lib.getDocument({data}).promise}catch(e){pv.innerHTML='<div class="empty">這個 PDF 打不開</div>';return}
+ if(V.dead){pdf.destroy();return}V.pdf=pdf;
+ const p1=await pdf.getPage(1),vp1=p1.getViewport({scale:1});
+ pv.innerHTML=Array.from({length:pdf.numPages},(_,j)=>`<div class="pg" data-p="${j+1}" style="aspect-ratio:${vp1.width}/${vp1.height}"><span>第 ${j+1} 頁</span></div>`).join('');
+ const draw=async el=>{if(V.dead)return;const n=+el.dataset.p,w=el.clientWidth;if(el._w===w)return;el._w=w;
+  const pg=await pdf.getPage(n);const v0=pg.getViewport({scale:1});el.style.aspectRatio=v0.width+'/'+v0.height;
+  const sc=Math.min(4,w*Math.min(2.5,devicePixelRatio||1)/v0.width);const vp=pg.getViewport({scale:sc});
+  const c=document.createElement('canvas');c.width=Math.floor(vp.width);c.height=Math.floor(vp.height);
+  try{await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise}catch(e){el._w=0;return}
+  if(V.dead||el._w!==w)return;el.innerHTML='';el.appendChild(c)};
+ const clear=el=>{if(el._w){el._w=0;el.innerHTML=`<span>第 ${el.dataset.p} 頁</span>`}};
+ V.io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting?draw(e.target):clear(e.target)),{rootMargin:'1500px 0px'});
+ pv.querySelectorAll('.pg').forEach(el=>V.io.observe(el));
+ V.redraw=()=>pv.querySelectorAll('.pg').forEach(el=>{if(el._w){el._w=-1;draw(el)}})}
+function route(){if(!LIST||!KEY)return;const h=decodeURIComponent(location.hash||'');let m;curDocKey=null;closeViewer();$('#drawer').classList.remove('on');
  if(h==='#/set')return renderSet();
+ if((m=h.match(/^#\/g\/([^/]+)\/f\/([bz])(\d+)$/)))return renderFile(m[1],m[2],+m[3]);
  if((m=h.match(/^#\/g\/([^/]+)\/(\d+)$/)))return renderDoc(m[1],+m[2]);
  if((m=h.match(/^#\/g\/([^/]+)$/)))return renderGame(m[1]);
  renderList();const y=LS.get('listY',0);if(y)setTimeout(()=>scrollTo(0,y),0)}

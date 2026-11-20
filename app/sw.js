@@ -1,4 +1,4 @@
-// 桌遊 App 離線快取（資料版本 20261120-220148）
+// 桌遊 App 離線快取（資料版本 20261120-233842）
 // 看過的東西都存起來，沒網路也能看；只有在 App 裡按「檢查並更新」才會清掉快取、抓新版。
 const C = 'bgapp-cache';
 self.addEventListener('install', e => self.skipWaiting());
@@ -8,7 +8,8 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const u = new URL(req.url);
   if (u.pathname.endsWith('/version.json') || u.pathname.endsWith('/key.json')) return;  // 檢查更新、密碼核對一律走網路
-  e.respondWith(caches.open(C).then(async c => {
+  const keep = u.host === 'raw.githubusercontent.com' || u.host === 'cdnjs.cloudflare.com';  // 規則書檔與 PDF 閱讀器：內容固定，存在不會被清掉的快取
+  e.respondWith(caches.open(keep ? 'bgapp-books' : C).then(async c => {
     const hit = await c.match(req);
     if (hit) return hit;
     try {
