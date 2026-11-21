@@ -66,6 +66,7 @@ input[type=search]{flex:1 1 220px}
 .tag.t-重策{background:var(--felt);color:var(--felt-ink)}
 .meta{font-size:13px;display:grid;grid-template-columns:auto 1fr;gap:1px 8px;font-variant-numeric:tabular-nums}
 .meta b{font-weight:500;color:var(--muted)}
+.meta .pl{display:flex;flex-wrap:wrap;column-gap:10px}.meta .pl>span{white-space:nowrap}
 .wbar{height:5px;background:var(--chip);border-radius:3px;overflow:hidden}
 .wbar i{display:block;height:100%;background:linear-gradient(90deg,var(--felt),var(--amber))}
 .note{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px;margin-top:auto;overflow-wrap:anywhere}
@@ -223,12 +224,9 @@ function card(g){
     <h3 class="name">${esc(g.name)}</h3>
     <div class="tags">${g.types.map(t=>`<span class="tag t-${esc(t)}">${esc(t)}</span>`).join('')}</div>
     <div class="meta">
-      <b>人數</b><span>${g.pmin?(g.pmin===g.pmax?g.pmin:`${g.pmin}–${g.pmax}`):'—'}</span>
-      <b>推薦</b><span>${g.rec?esc(g.rec):'—'}</span>
-      <b>最佳</b><span>${g.best?esc(g.best):'—'}</span>
+      <b>人數</b><span class="pl"><span>${g.pmin?(g.pmin===g.pmax?g.pmin:`${g.pmin}–${g.pmax}`):'—'}</span><span><b>推薦</b> ${g.rec?esc(g.rec):'—'}</span><span><b>最佳</b> ${g.best?esc(g.best):'—'}</span></span>
       <b>時間</b><span>${t}</span>
-      <b>評分</b><span>${g.rating||'—'}</span>
-      <b>重度</b><span>${g.weight||'—'}</span>
+      <b>評分</b><span class="pl"><span>${g.rating||'—'}</span><span><b>重度</b> ${g.weight||'—'}</span></span>
     </div>
     <div class="wbar" title="重度 ${g.weight||'—'} / 5"><i style="width:${w}%"></i></div>
     ${g.note?`<div class="note">${esc(g.note)}</div>`:''}
