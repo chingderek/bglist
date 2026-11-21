@@ -125,7 +125,7 @@ const DEFAULT_CSV = '2PACX-1vRqIRYb_LfALGzmrShlbQ_3TiXcHbt4Fjn8K5-F6sxpzztK7Tr_i
 const code = new URLSearchParams(location.search).get('csv') || DEFAULT_CSV;
 const CSV_URL = code.startsWith('http') ? code : `https://docs.google.com/spreadsheets/d/e/${code}/pub?output=csv`;
 
-const TYPE_ORDER = ['重策','中策','輕策','聚會','陣營','合作','戰棋','美式','單人'];
+const TYPE_ORDER = ['輕策','中策','重策','聚會','陣營','合作','戰棋','美式','單人'];
 const WEIGHT_BINS = [['1','輕度 1–2',w=>w<2],['2','中輕 2–3',w=>w>=2&&w<3],['3','中重 3–4',w=>w>=3&&w<4],['4','重度 4–5',w=>w>=4]];
 const TIME_BINS = [['30','30 分以內',t=>t<=30],['60','31–60 分',t=>t>30&&t<=60],['120','1–2 小時',t=>t>60&&t<=120],['240','2–4 小時',t=>t>120&&t<=240],['999','4 小時以上',t=>t>240]];
 const FIELDS = ['players','ftype','fweight','ftime','fpub','flang'];
