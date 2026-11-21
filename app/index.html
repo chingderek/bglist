@@ -38,13 +38,13 @@ main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
 @media(min-width:620px){.grid{grid-template-columns:1fr 1fr}}
 .gc{display:flex;gap:12px;background:var(--card);border-radius:14px;padding:10px;border:1px solid var(--line);cursor:pointer;text-align:left;width:100%}
 .gc:active{transform:scale(.99)}
-.gc img,.gc .ph{width:72px;height:72px;border-radius:10px;object-fit:cover;flex:none;background:var(--alt)}
+.gc img{width:72px;height:auto;max-height:120px;object-fit:contain;border-radius:8px;flex:none;align-self:flex-start}.gc .ph{width:72px;height:72px;border-radius:10px;flex:none;background:var(--alt)}
 .gc .t{font-weight:700;font-size:16px;line-height:1.3}
 .gc .m{font-size:13px;color:var(--sub);margin-top:4px;line-height:1.5}
 .tag{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;margin-right:4px;background:var(--alt);color:var(--sub)}
 .tag.k{background:var(--pri2);color:#fff}
 .hero{display:flex;gap:14px;background:var(--card);border-radius:16px;padding:14px;border:1px solid var(--line)}
-.hero img{width:110px;height:110px;object-fit:cover;border-radius:12px;flex:none}
+.hero img{width:110px;height:auto;max-height:180px;object-fit:contain;border-radius:10px;flex:none;align-self:flex-start}
 .hero h2{margin:0 0 6px;font-size:20px;line-height:1.3}
 .hero .m{font-size:14px;color:var(--sub);line-height:1.6}
 .desc{font-size:14px;color:var(--sub);margin:10px 2px;line-height:1.6}
