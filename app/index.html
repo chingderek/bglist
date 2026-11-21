@@ -33,9 +33,11 @@ main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
 .chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 13px;font-size:14px;cursor:pointer;white-space:nowrap}
 .chip.on{background:var(--pri2);border-color:var(--pri2);color:#fff}
 .flabel{font-size:12px;color:var(--sub);margin:2px 2px 4px}
-.lhead{position:sticky;top:var(--hh,60px);z-index:15;background:var(--bg);margin:-12px -12px 6px;padding:10px 12px 4px;border-bottom:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.06)}
-.lhead .search{margin-bottom:6px}.lhead .chips{margin-bottom:2px}
-.ftog{display:flex;align-items:center;gap:8px;width:100%;margin:2px 0 6px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:14px;cursor:pointer;text-align:left}
+.lhead{position:sticky;top:var(--hh,60px);z-index:15;background:var(--bg);margin:-12px -12px 6px;padding:8px 12px 2px;border-bottom:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.lhead .search{margin-bottom:6px}.lhead .search input{height:36px;border-radius:10px;padding:0 12px}
+.lhead .chips{margin-bottom:0;padding-bottom:4px;gap:6px}.lhead .chip{padding:4px 10px;font-size:13px}
+.lhead .flabel{display:none}.lhead .fpanel .flabel{display:block;margin:4px 2px 2px}
+.ftog{display:flex;align-items:center;gap:8px;width:100%;margin:2px 0 6px;padding:5px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:13px;cursor:pointer;text-align:left}
 .ftog .fs{flex:1;color:var(--sub);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ftog .fn{background:var(--pri2);color:#fff;border-radius:999px;font-size:12px;padding:1px 8px}
 .ftog .ar{transition:transform .2s}.ftog.open .ar{transform:rotate(180deg)}
@@ -178,7 +180,7 @@ main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
 </style>
 </head>
 <body>
-<header><button class="hb" id="back" style="display:none" aria-label="返回">←</button><h1 id="ttl">我的桌遊</h1><button class="hb" id="setbtn" aria-label="設定">⚙</button></header>
+<header><button class="hb" id="back" style="display:none" aria-label="返回">←</button><h1 id="ttl">我的桌遊</h1><button class="hb" id="hidebtn" style="display:none"></button><button class="hb" id="setbtn" aria-label="設定">⚙</button></header>
 <main id="app"><div class="empty">載入中…</div></main>
 <div class="fab" id="fab" style="display:none"><button id="tocbtn" aria-label="目錄">☰</button><button id="topbtn" aria-label="回到頂端">↑</button></div>
 <div class="drawer" id="drawer"><div class="sh"></div><div class="pn" id="toc"></div></div>
@@ -188,7 +190,7 @@ main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
 const $=s=>document.querySelector(s);
 const LS={get(k,d){try{const v=localStorage.getItem('bgapp-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('bgapp-'+k,JSON.stringify(v))}catch(e){}}};
 let LIST=null; const GCACHE={};
-const state=Object.assign({q:'',p:'',type:[],lang:[],w:'',sort:'pub',rev:false,fopen:false},LS.get('filters',{}));
+const state=Object.assign({q:'',p:'',type:[],lang:[],w:'',sort:'pub',rev:false,fopen:false,hide:false},LS.get('filters',{}));
 /* 排序跟線上清單網頁一樣：預設依出版社作品數（多→少），同組維持試算表順序 */
 const SORTS=[['pub','出版社作品數',['多→少','少→多']],['name','名稱',['A→Z','Z→A']],['rating','BGG 評分',['高→低','低→高']],['weight','重度',['重→輕','輕→重']],['time','遊玩時間',['長→短','短→長']]];
 const maxTime=g=>+(g.tmax||g.tmin||0);let PUB_RANK=null;
@@ -236,20 +238,22 @@ async function copyText(t){let ok=false;try{await navigator.clipboard.writeText(
 const KIC={teach:'教',rules:'規',aid:'卡',flow:'流',card:'牌'};
 function players(n,g){const lo=g.pmin,hi=g.pmax;return lo&&hi&&n>=lo&&n<=hi}
 function wb(w){if(!w)return'';return w<2?'輕':w<3?'中輕':w<3.6?'中重':'重'}
-function setHeader(t,back){$('#ttl').textContent=t;$('#back').style.display=back?'':'none'}
+function setHeader(t,back){$('#ttl').textContent=t;$('#back').style.display=back?'':'none';$('#hidebtn').style.display='none'}
 function filtered(){const q=state.q.trim().toLowerCase();return LIST.games.filter(g=>{
  if(q&&!((g.name||'')+' '+(g.en||'')+' '+(g.publisher||'')+' '+(g.designer||[]).join(' ')).toLowerCase().includes(q))return false;
  if(state.p){const n=+state.p;if(n>=6){if(!(g.pmax>=6))return false}else if(!players(n,g))return false}
  if(state.type.length&&!state.type.includes(g.type))return false;
  if(state.lang.length&&!state.lang.includes(g.lang))return false;
  if(state.w&&wb(g.weight)!==state.w)return false;return true})}
-function sortRow(){return `<div class="flabel">排序（再按一次切換正序／倒序）</div><div class="chips">`+SORTS.map(o=>{const on=state.sort===o[0];return `<button class="chip so${on?' on':''}" data-s="${o[0]}">${o[1]}${on?'　'+o[2][state.rev?1:0]:''}</button>`}).join('')+'</div>'}
+function sortRow(){return `<div class="flabel">排序（再按一次切換正序／倒序）</div><div class="chips" title="排序（再按一次切換正序／倒序）">`+SORTS.map(o=>{const on=state.sort===o[0];return `<button class="chip so${on?' on':''}" data-s="${o[0]}">${o[1]}${on?'　'+o[2][state.rev?1:0]:''}</button>`}).join('')+'</div>'}
 function chipRow(label,key,vals,multi){return `<div class="flabel">${label}</div><div class="chips">`+vals.map(v=>{const on=multi?state[key].includes(v[0]):state[key]===v[0];return `<button class="chip${on?' on':''}" data-k="${key}" data-v="${esc(v[0])}" data-m="${multi?1:0}">${esc(v[1])}</button>`}).join('')+'</div>'}
 function renderList(){setHeader('我的桌遊',false);$('#fab').style.display='none';
  const types=[...new Set(LIST.games.map(g=>g.type).filter(Boolean))];const langs=[...new Set(LIST.games.map(g=>g.lang).filter(Boolean))];
  const res=sortList(filtered());
  const act=[state.p?(state.p==='6'?'6 人以上':state.p+' 人'):'',...state.type,...state.lang,state.w?'重度 '+state.w:''].filter(Boolean);
- $('#app').innerHTML=`<div class="lhead"><div class="search"><input id="q" type="search" placeholder="搜尋名稱、英文名、出版社、設計師" value="${esc(state.q)}"></div>`+sortRow()+
+ const hb=$('#hidebtn');hb.style.display='';hb.textContent=state.hide?(act.length||state.q?'🔍 搜尋 ●':'🔍 搜尋'):'▲ 收起';hb.setAttribute('aria-label',state.hide?'顯示搜尋與篩選':'收起搜尋與篩選');
+ hb.onclick=()=>{state.hide=!state.hide;LS.set('filters',state);const y=scrollY;renderList();scrollTo(0,y)};
+ $('#app').innerHTML=`<div class="lhead"${state.hide?' hidden':''}><div class="search"><input id="q" type="search" placeholder="搜尋名稱、英文名、出版社、設計師" value="${esc(state.q)}"></div>`+sortRow()+
  `<button class="ftog${state.fopen?' open':''}" id="ftog" aria-expanded="${state.fopen}"><b>篩選</b>${act.length?`<span class="fn">${act.length}</span>`:''}<span class="fs">${act.length?esc(act.join('、')):'人數、類別、語言、重度'}</span><span class="ar">▾</span></button>`+
  `<div class="fpanel"${state.fopen?'':' hidden'}>`+(act.length?'<button class="fclr" id="fclr">清除全部篩選</button>':'')+
  chipRow('人數','p',[['','全部'],['1','1 人'],['2','2 人'],['3','3 人'],['4','4 人'],['5','5 人'],['6','6 人以上']],false)+
