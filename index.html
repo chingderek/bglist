@@ -223,7 +223,9 @@ function card(g){
     <h3 class="name">${esc(g.name)}</h3>
     <div class="tags">${g.types.map(t=>`<span class="tag t-${esc(t)}">${esc(t)}</span>`).join('')}</div>
     <div class="meta">
-      <b>人數</b><span>${g.pmin?(g.pmin===g.pmax?g.pmin:`${g.pmin}–${g.pmax}`):'—'}${g.best?` ・ 最佳 ${esc(g.best)}`:''}</span>
+      <b>人數</b><span>${g.pmin?(g.pmin===g.pmax?g.pmin:`${g.pmin}–${g.pmax}`):'—'}</span>
+      <b>推薦</b><span>${g.rec?esc(g.rec):'—'}</span>
+      <b>最佳</b><span>${g.best?esc(g.best):'—'}</span>
       <b>時間</b><span>${t}</span>
       <b>評分</b><span>${g.rating||'—'}</span>
       <b>重度</b><span>${g.weight||'—'}</span>
