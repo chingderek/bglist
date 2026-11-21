@@ -249,7 +249,7 @@ function filtered(){const q=state.q.trim().toLowerCase();return LIST.games.filte
 function sortRow(){return `<div class="flabel">排序（再按一次切換正序／倒序）</div><div class="chips" title="排序（再按一次切換正序／倒序）">`+SORTS.map(o=>{const on=state.sort===o[0];return `<button class="chip so${on?' on':''}" data-s="${o[0]}">${o[1]}${on?'　'+o[2][state.rev?1:0]:''}</button>`}).join('')+'</div>'}
 function chipRow(label,key,vals,multi){return `<div class="flabel">${label}</div><div class="chips">`+vals.map(v=>{const on=multi?state[key].includes(v[0]):state[key]===v[0];return `<button class="chip${on?' on':''}" data-k="${key}" data-v="${esc(v[0])}" data-m="${multi?1:0}">${esc(v[1])}</button>`}).join('')+'</div>'}
 function renderList(){setHeader('我的桌遊',false);$('#fab').style.display='none';
- const TO=['輕策','中策','重策'];const types=[...new Set([...TO,...LIST.games.flatMap(tys)])].filter(t=>LIST.games.some(g=>tys(g).includes(t)));state.type=state.type.filter(t=>types.includes(t));const langs=[...new Set(LIST.games.map(g=>g.lang).filter(Boolean))];
+ const TO=['輕策','中策','重策'],TB=['聚會','陣營','合作','戰棋','美式','單人'],tc=t=>LIST.games.filter(g=>tys(g).includes(t)).length;const types=TO.filter(t=>tc(t)).concat([...new Set(LIST.games.flatMap(tys))].filter(t=>!TO.includes(t)).sort((a,b)=>tc(b)-tc(a)||TB.indexOf(a)-TB.indexOf(b)));state.type=state.type.filter(t=>types.includes(t));const langs=[...new Set(LIST.games.map(g=>g.lang).filter(Boolean))];
  const res=sortList(filtered());
  const act=[state.p?(state.p==='6'?'6 人以上':state.p+' 人'):'',...state.type,...state.lang,state.w?'重度 '+state.w:''].filter(Boolean);
  const hb=$('#hidebtn');hb.style.display='';hb.textContent=state.hide?(act.length||state.q?'🔍 搜尋 ●':'🔍 搜尋'):'▲ 收起';hb.setAttribute('aria-label',state.hide?'顯示搜尋與篩選':'收起搜尋與篩選');

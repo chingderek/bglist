@@ -186,7 +186,8 @@ const playerOk = (g,n) => n===maxP ? g.pmax>=n : n>=g.pmin && n<=g.pmax;
 function setup(){
   maxP = Math.min(10, Math.max(1,...DATA.map(g=>g.pmax)));
   fill('players', Array.from({length:maxP},(_,i)=>i+1).map(n=>[String(n), n===maxP?`${n} 人以上`:`${n} 人`, cnt(g=>playerOk(g,n))]));
-  const types = TYPE_ORDER.filter(t=>DATA.some(g=>g.types.includes(t))).concat([...new Set(DATA.flatMap(g=>g.types))].filter(t=>!TYPE_ORDER.includes(t)));
+  const TFIX=['輕策','中策','重策'], tc=t=>DATA.filter(g=>g.types.includes(t)).length;
+  const types = TFIX.filter(t=>tc(t)).concat([...new Set(DATA.flatMap(g=>g.types))].filter(t=>!TFIX.includes(t)).sort((a,b)=>tc(b)-tc(a)||TYPE_ORDER.indexOf(a)-TYPE_ORDER.indexOf(b)));
   fill('ftype', types.map(t=>[t,t,cnt(g=>g.types.includes(t))]));
   fill('fweight', WEIGHT_BINS.map(([v,l,f])=>[v,l,cnt(g=>g.weight&&f(g.weight))]));
   fill('ftime', TIME_BINS.map(([v,l,f])=>[v,l,cnt(g=>maxTime(g)&&f(maxTime(g)))]));
