@@ -156,7 +156,7 @@ function toGame(r, i, H){
   const [pmin,pmax]=range(v('player')), [tmin,tmax]=range(v('playtime'));
   const g={order:i, name:v('name'), img:v('imgur'), pmin, pmax, tmin, tmax, types:[], lang:'', pub:'其他', publisher:'', rec:'', best:'', rating:0, weight:0, note:[], exp:/擴充/.test(v('tag'))};
   v('gametype').split('、').map(x=>x.trim()).filter(Boolean).forEach(t=>{
-    if(t.startsWith('語言:')) g.lang=t.slice(3); else if(t.startsWith('出版:')) g.pub=t.slice(3); else g.types.push(t); });
+    if(t.startsWith('語言:')) g.lang=t.slice(3); else if(t.startsWith('出版:')) g.pub=t.slice(3); else t.split(/[\/／]/).map(x=>x.trim()).filter(Boolean).forEach(x=>{if(!g.types.includes(x))g.types.push(x)}); });
   v('description').split('；').map(x=>x.trim()).filter(Boolean).forEach((p,j)=>{
     let m;
     if(j===0 && !/^(推薦|最佳|BGG|重度)/.test(p)) g.publisher=p;

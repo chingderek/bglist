@@ -237,18 +237,19 @@ async function copyText(t){let ok=false;try{await navigator.clipboard.writeText(
  toast(ok?'已複製清單網址':'複製失敗，請長按網址手動複製')}
 const KIC={teach:'教',rules:'規',aid:'卡',flow:'流',card:'牌'};
 function players(n,g){const lo=g.pmin,hi=g.pmax;return lo&&hi&&n>=lo&&n<=hi}
+function tys(g){return (g.type||'').split(/[\/／]/).map(x=>x.trim()).filter(Boolean)}
 function wb(w){if(!w)return'';return w<2?'輕':w<3?'中輕':w<3.6?'中重':'重'}
 function setHeader(t,back){$('#ttl').textContent=t;$('#back').style.display=back?'':'none';$('#hidebtn').style.display='none'}
 function filtered(){const q=state.q.trim().toLowerCase();return LIST.games.filter(g=>{
  if(q&&!((g.name||'')+' '+(g.en||'')+' '+(g.publisher||'')+' '+(g.designer||[]).join(' ')).toLowerCase().includes(q))return false;
  if(state.p){const n=+state.p;if(n>=6){if(!(g.pmax>=6))return false}else if(!players(n,g))return false}
- if(state.type.length&&!state.type.includes(g.type))return false;
+ if(state.type.length&&!state.type.some(t=>tys(g).includes(t)))return false;
  if(state.lang.length&&!state.lang.includes(g.lang))return false;
  if(state.w&&wb(g.weight)!==state.w)return false;return true})}
 function sortRow(){return `<div class="flabel">排序（再按一次切換正序／倒序）</div><div class="chips" title="排序（再按一次切換正序／倒序）">`+SORTS.map(o=>{const on=state.sort===o[0];return `<button class="chip so${on?' on':''}" data-s="${o[0]}">${o[1]}${on?'　'+o[2][state.rev?1:0]:''}</button>`}).join('')+'</div>'}
 function chipRow(label,key,vals,multi){return `<div class="flabel">${label}</div><div class="chips">`+vals.map(v=>{const on=multi?state[key].includes(v[0]):state[key]===v[0];return `<button class="chip${on?' on':''}" data-k="${key}" data-v="${esc(v[0])}" data-m="${multi?1:0}">${esc(v[1])}</button>`}).join('')+'</div>'}
 function renderList(){setHeader('我的桌遊',false);$('#fab').style.display='none';
- const types=[...new Set(LIST.games.map(g=>g.type).filter(Boolean))];const langs=[...new Set(LIST.games.map(g=>g.lang).filter(Boolean))];
+ const types=[...new Set(LIST.games.flatMap(tys))];state.type=state.type.filter(t=>types.includes(t));const langs=[...new Set(LIST.games.map(g=>g.lang).filter(Boolean))];
  const res=sortList(filtered());
  const act=[state.p?(state.p==='6'?'6 人以上':state.p+' 人'):'',...state.type,...state.lang,state.w?'重度 '+state.w:''].filter(Boolean);
  const hb=$('#hidebtn');hb.style.display='';hb.textContent=state.hide?(act.length||state.q?'🔍 搜尋 ●':'🔍 搜尋'):'▲ 收起';hb.setAttribute('aria-label',state.hide?'顯示搜尋與篩選':'收起搜尋與篩選');
