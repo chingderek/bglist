@@ -41,6 +41,7 @@ main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
 .gc img{width:76px;height:96px;object-fit:contain;object-position:center;flex:none;align-self:center}.gc .ph{width:76px;height:96px;align-self:center;border-radius:10px;flex:none;background:var(--alt)}
 .gc .t{font-weight:700;font-size:16px;line-height:1.3}
 .gc .m{font-size:13px;color:var(--sub);margin-top:4px;line-height:1.5}
+.gc .pp{margin-top:2px}.gc .pp b{color:var(--ink);font-weight:700}
 .tag{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;margin-right:4px;background:var(--alt);color:var(--sub)}
 .tag.k{background:var(--pri2);color:#fff}
 .hero{display:flex;gap:14px;background:var(--card);border-radius:16px;padding:14px;border:1px solid var(--line)}
@@ -243,7 +244,7 @@ function renderList(){setHeader('我的桌遊',false);$('#fab').style.display='n
  chipRow('類別','type',types.map(t=>[t,t]),true)+chipRow('語言','lang',langs.map(t=>[t,t]),true)+
  chipRow('重度','w',[['','全部'],['輕','輕 (<2)'],['中輕','中輕 (2–3)'],['中重','中重 (3–3.6)'],['重','重 (≥3.6)']],false)+
  `<div class="count"><span>${res.length} / ${LIST.games.length} 款</span><span>資料版本 ${esc(LIST.version)}</span></div><div class="grid">`+
- (res.length?res.map(g=>`<button class="gc" data-id="${esc(g.id)}">${g.img?`<img loading="lazy" src="${esc(g.img)}" alt="">`:'<div class="ph"></div>'}<div><div class="t">${esc(g.name)}</div><div class="m"><span class="tag k">${esc(g.type||'')}</span><span class="tag">${esc(g.lang||'')}</span>${g.sup?esc(g.sup)+' 人':''}${g.best?'｜最佳 '+esc(g.best):''}${g.weight?'｜重度 '+g.weight:''}${g.tmin?'｜'+esc(g.tmin)+(g.tmax&&g.tmax!==g.tmin?'–'+esc(g.tmax):'')+' 分':''}</div></div></button>`).join(''):'<div class="empty">沒有符合的桌遊</div>')+'</div>';
+ (res.length?res.map(g=>`<button class="gc" data-id="${esc(g.id)}">${g.img?`<img loading="lazy" src="${esc(g.img)}" alt="">`:'<div class="ph"></div>'}<div><div class="t">${esc(g.name)}</div><div class="m"><span class="tag k">${esc(g.type||'')}</span><span class="tag">${esc(g.lang||'')}</span>${[g.weight?'重度 '+g.weight:'',g.tmin?esc(g.tmin)+(g.tmax&&g.tmax!==g.tmin?'–'+esc(g.tmax):'')+' 分':''].filter(Boolean).join('｜')}<div class="pp">${[g.sup?'人數 <b>'+esc(g.sup)+'</b>':'',g.rec?'推薦 <b>'+esc(g.rec)+'</b>':'',g.best?'最佳 <b>'+esc(g.best)+'</b>':''].filter(Boolean).join('｜')}</div></div></div></button>`).join(''):'<div class="empty">沒有符合的桌遊</div>')+'</div>';
  const qi=$('#q');qi.oninput=()=>{state.q=qi.value;LS.set('filters',state);clearTimeout(qi._t);qi._t=setTimeout(()=>{const p=qi.selectionStart;renderList();const n=$('#q');n.focus();n.setSelectionRange(p,p)},250)};
  document.querySelectorAll('.chip.so').forEach(c=>c.onclick=()=>{const v=c.dataset.s;if(state.sort===v)state.rev=!state.rev;else{state.sort=v;state.rev=false}LS.set('filters',state);const y=scrollY;renderList();scrollTo(0,y)});
  document.querySelectorAll('.chip[data-k]').forEach(c=>c.onclick=()=>{const k=c.dataset.k,v=c.dataset.v;if(c.dataset.m==='1'){const a=state[k];const i=a.indexOf(v);i>=0?a.splice(i,1):a.push(v)}else state[k]=state[k]===v?'':v;LS.set('filters',state);const y=scrollY;renderList();scrollTo(0,y)});
