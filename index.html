@@ -52,7 +52,7 @@ input[type=search]{flex:1 1 220px}
 #dir{width:26px;height:26px;padding:0;font-size:13px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
 .chip:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .count{font-size:13px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding-block:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));grid-auto-rows:1fr;gap:14px;padding-block:16px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;min-width:0}
 .cover{aspect-ratio:1/1;max-width:100%;background:var(--chip);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
 .cover img{width:100%;height:100%;object-fit:contain;display:block}
@@ -60,7 +60,7 @@ input[type=search]{flex:1 1 220px}
 .cover .lang{position:absolute;top:8px;left:8px;background:var(--felt);color:var(--felt-ink);font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px}
 .cover .exp{position:absolute;top:8px;right:8px;background:var(--amber);color:#1f2a24;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
 .body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
-.name{font-family:var(--display);font-weight:700;font-size:16px;line-height:1.3;margin:0}
+.name{font-family:var(--display);font-weight:700;font-size:16px;line-height:1.3;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:2.6em}
 .tags{display:flex;flex-wrap:wrap;gap:4px}
 .tag{font-size:11px;background:var(--chip);border-radius:5px;padding:1px 7px}
 .tag.t-重策{background:var(--felt);color:var(--felt-ink)}
@@ -69,8 +69,9 @@ input[type=search]{flex:1 1 220px}
 .meta .pl{display:flex;flex-wrap:wrap;column-gap:10px}.meta .pl>span{white-space:nowrap}
 .wbar{height:5px;background:var(--chip);border-radius:3px;overflow:hidden}
 .wbar i{display:block;height:100%;background:linear-gradient(90deg,var(--felt),var(--amber))}
-.note{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px;margin-top:auto;overflow-wrap:anywhere}
-.pubname{font-size:11px;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px;margin-top:auto;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.pubname{font-size:11px;color:var(--muted);margin-top:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note+.pubname{margin-top:0}
 .empty,.status{padding:40px;text-align:center;color:var(--muted)}
 footer{font-size:12px;color:var(--muted);margin-top:24px}
 @media (max-width:480px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}.body{padding:8px}.name{font-size:14px}}
@@ -221,7 +222,7 @@ function card(g){
   <div class="cover">${g.img?`<img src="${esc(g.img)}" alt="${esc(g.name)} 封面" loading="lazy" referrerpolicy="no-referrer">`:`<div class="noimg">${esc(g.name)}</div>`}
     ${g.lang?`<span class="lang">${esc(g.lang)}</span>`:''}${g.exp?'<span class="exp">擴充</span>':''}</div>
   <div class="body">
-    <h3 class="name">${esc(g.name)}</h3>
+    <h3 class="name" title="${esc(g.name)}">${esc(g.name)}</h3>
     <div class="tags">${g.types.map(t=>`<span class="tag t-${esc(t)}">${esc(t)}</span>`).join('')}</div>
     <div class="meta">
       <b>人數</b><span class="pl"><span>${g.pmin?(g.pmin===g.pmax?g.pmin:`${g.pmin}–${g.pmax}`):'—'}</span><span><b>推薦</b> ${g.rec?esc(g.rec):'—'}</span><span><b>最佳</b> ${g.best?esc(g.best):'—'}</span></span>
@@ -229,8 +230,8 @@ function card(g){
       <b>評分</b><span class="pl"><span>${g.rating||'—'}</span><span><b>重度</b> ${g.weight||'—'}</span></span>
     </div>
     <div class="wbar" title="重度 ${g.weight||'—'} / 5"><i style="width:${w}%"></i></div>
-    ${g.note?`<div class="note">${esc(g.note)}</div>`:''}
-    <div class="pubname">${esc(g.publisher||g.pub)}</div>
+    ${g.note?`<div class="note" title="${esc(g.note)}">${esc(g.note)}</div>`:''}
+    <div class="pubname" title="${esc(g.publisher||g.pub)}">${esc(g.publisher||g.pub)}</div>
   </div></article>`;
 }
 
