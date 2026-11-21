@@ -224,7 +224,7 @@ function renderLock(msg){setHeader('我的桌遊',false);$('#fab').style.display
  const go=async()=>{const pw=$('#pw').value.trim();if(!pw)return;$('#pwerr').textContent='確認中…';
   try{if(await tryPassword(pw)){$('#pwerr').textContent='';start()}else $('#pwerr').textContent='密碼不對，再試一次'}catch(e){$('#pwerr').textContent='連不上網路，請連線後再試'}};
  $('#pwgo').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};$('#pw').focus()}
-async function loadList(fresh){PUB_RANK=null;LIST=await getEnc('list.bin'+(fresh?'?t='+Date.now():''),fresh);return LIST}
+async function loadList(fresh){PUB_RANK=null;tord.o=null;LIST=await getEnc('list.bin'+(fresh?'?t='+Date.now():''),fresh);return LIST}
 async function loadGame(id){if(GCACHE[id])return GCACHE[id];const m=LIST&&LIST.games.find(x=>x.id===id);const g=await getEnc('g/'+encodeURIComponent(id)+'.bin'+(m&&m.gh?'?h='+m.gh:''));GCACHE[id]=g;return g}
 let BLOBS=[],IO=null;
 function showImgs(root){BLOBS.forEach(u=>URL.revokeObjectURL(u));BLOBS=[];if(IO)IO.disconnect();
@@ -237,7 +237,7 @@ async function copyText(t){let ok=false;try{await navigator.clipboard.writeText(
  toast(ok?'已複製清單網址':'複製失敗，請長按網址手動複製')}
 const KIC={teach:'教',rules:'規',aid:'卡',flow:'流',card:'牌'};
 function players(n,g){const lo=g.pmin,hi=g.pmax;return lo&&hi&&n>=lo&&n<=hi}
-function tys(g){return (g.type||'').split(/[\/／]/).map(x=>x.trim()).filter(Boolean)}
+function rty(g){return (g.type||'').split(/[\/／]/).map(x=>x.trim()).filter(Boolean)}function tord(){if(!tord.o&&typeof LIST!=='undefined'&&LIST&&LIST.games){const F=['輕策','中策','重策'],TB=['聚會','陣營','合作','戰棋','美式','團隊對抗','單人'],c={};LIST.games.forEach(g=>rty(g).forEach(t=>c[t]=(c[t]||0)+1));tord.o=F.concat(Object.keys(c).filter(t=>!F.includes(t)).sort((a,b)=>c[b]-c[a]||TB.indexOf(a)-TB.indexOf(b)))}return tord.o||[]}function tys(g){const o=tord(),i=t=>{const k=o.indexOf(t);return k<0?99:k};return rty(g).sort((a,b)=>i(a)-i(b))}
 function wb(w){if(!w)return'';return w<2?'輕':w<3?'中輕':w<3.6?'中重':'重'}
 function setHeader(t,back){$('#ttl').textContent=t;$('#back').style.display=back?'':'none';$('#hidebtn').style.display='none'}
 function filtered(){const q=state.q.trim().toLowerCase();return LIST.games.filter(g=>{
