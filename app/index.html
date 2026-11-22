@@ -36,7 +36,7 @@ main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
 .lhead{position:sticky;top:var(--hh,60px);z-index:15;background:var(--bg);margin:-12px -12px 6px;padding:8px 12px 2px;border-bottom:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.06)}
 .lhead .search{margin-bottom:6px}.lhead .search input{height:36px;border-radius:10px;padding:0 12px}
 .lhead .chips{margin-bottom:0;padding-bottom:4px;gap:6px}.lhead .chip{padding:4px 10px;font-size:13px}
-.lhead .flabel{display:none}.lhead .fpanel .flabel{display:block;margin:4px 2px 2px}
+.lhead .flabel{display:none}.btog{margin-left:8px;padding:1px 9px;font-size:12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--sub);cursor:pointer;vertical-align:middle}.btog.on{background:var(--pri2);border-color:var(--pri2);color:#fff}.lhead .fpanel .flabel{display:block;margin:4px 2px 2px}
 .ftog{display:flex;align-items:center;gap:8px;width:100%;margin:2px 0 6px;padding:5px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:13px;cursor:pointer;text-align:left}
 .ftog .fs{flex:1;color:var(--sub);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ftog .fn{background:var(--pri2);color:#fff;border-radius:999px;font-size:12px;padding:1px 8px}
@@ -190,7 +190,7 @@ main{max-width:860px;margin:0 auto;padding:12px 12px 80px}
 const $=s=>document.querySelector(s);
 const LS={get(k,d){try{const v=localStorage.getItem('bgapp-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('bgapp-'+k,JSON.stringify(v))}catch(e){}}};
 let LIST=null; const GCACHE={};
-const state=Object.assign({q:'',p:'',b:'',type:[],lang:[],w:'',sort:'pub',rev:false,fopen:false,hide:false},LS.get('filters',{}));
+const state=Object.assign({q:'',p:'',bo:false,type:[],lang:[],w:'',sort:'pub',rev:false,fopen:false,hide:false},LS.get('filters',{}));
 /* 排序跟線上清單網頁一樣：預設依出版社作品數（多→少），同組維持試算表順序 */
 const SORTS=[['pub','出版社作品數',['多→少','少→多']],['name','名稱',['A→Z','Z→A']],['rating','BGG 評分',['高→低','低→高']],['weight','重度',['重→輕','輕→重']],['time','遊玩時間',['長→短','短→長']]];
 const maxTime=g=>+(g.tmax||g.tmin||0);let PUB_RANK=null;
@@ -243,8 +243,7 @@ function wb(w){if(!w)return'';return w<2?'輕':w<3?'中輕':w<3.6?'中重':'重'
 function setHeader(t,back){$('#ttl').textContent=t;$('#back').style.display=back?'':'none';$('#hidebtn').style.display='none'}
 function filtered(){const q=state.q.trim().toLowerCase();return LIST.games.filter(g=>{
  if(q&&!((g.name||'')+' '+(g.en||'')+' '+(g.publisher||'')+' '+(g.designer||[]).join(' ')).toLowerCase().includes(q))return false;
- if(state.p){const n=+state.p;if(n>=6){if(!(g.pmax>=6))return false}else if(!players(n,g))return false}
- if(state.b){const n=+state.b,b=bestN(g);if(!(n>=6?b.some(x=>x>=6):b.includes(n)))return false}
+ if(state.p){const n=+state.p;if(state.bo){const b=bestN(g);if(!(n>=6?b.some(x=>x>=6):b.includes(n)))return false}else if(n>=6){if(!(g.pmax>=6))return false}else if(!players(n,g))return false}
  if(state.type.length&&!state.type.some(t=>tys(g).includes(t)))return false;
  if(state.lang.length&&!state.lang.includes(g.lang))return false;
  if(state.w&&wb(g.weight)!==state.w)return false;return true})}
@@ -253,22 +252,22 @@ function chipRow(label,key,vals,multi){return `<div class="flabel">${label}</div
 function renderList(){setHeader('我的桌遊',false);$('#fab').style.display='none';
  const TO=['輕策','中策','重策'],TB=['聚會','陣營','合作','戰棋','美式','團隊對抗','單人'],tc=t=>LIST.games.filter(g=>tys(g).includes(t)).length;const types=TO.filter(t=>tc(t)).concat([...new Set(LIST.games.flatMap(tys))].filter(t=>!TO.includes(t)).sort((a,b)=>tc(b)-tc(a)||TB.indexOf(a)-TB.indexOf(b)));state.type=state.type.filter(t=>types.includes(t));const langs=[...new Set(LIST.games.map(g=>g.lang).filter(Boolean))];
  const res=sortList(filtered());
- const act=[state.p?(state.p==='6'?'6 人以上':state.p+' 人'):'',state.b?'最佳 '+(state.b==='6'?'6 人以上':state.b+' 人'):'',...state.type,...state.lang,state.w?'重度 '+state.w:''].filter(Boolean);
+ const act=[state.p?(state.bo?'最佳 ':'')+(state.p==='6'?'6 人以上':state.p+' 人'):'',...state.type,...state.lang,state.w?'重度 '+state.w:''].filter(Boolean);
  const hb=$('#hidebtn');hb.style.display='';hb.textContent=state.hide?(act.length||state.q?'🔍 搜尋 ●':'🔍 搜尋'):'▲ 收起';hb.setAttribute('aria-label',state.hide?'顯示搜尋與篩選':'收起搜尋與篩選');
  hb.onclick=()=>{state.hide=!state.hide;LS.set('filters',state);const y=scrollY;renderList();scrollTo(0,y)};
  $('#app').innerHTML=`<div class="lhead"${state.hide?' hidden':''}><div class="search"><input id="q" type="search" placeholder="搜尋名稱、英文名、出版社、設計師" value="${esc(state.q)}"></div>`+sortRow()+
- `<button class="ftog${state.fopen?' open':''}" id="ftog" aria-expanded="${state.fopen}"><b>篩選</b>${act.length?`<span class="fn">${act.length}</span>`:''}<span class="fs">${act.length?esc(act.join('、')):'人數、最佳人數、類別、語言、重度'}</span><span class="ar">▾</span></button>`+
+ `<button class="ftog${state.fopen?' open':''}" id="ftog" aria-expanded="${state.fopen}"><b>篩選</b>${act.length?`<span class="fn">${act.length}</span>`:''}<span class="fs">${act.length?esc(act.join('、')):'人數、類別、語言、重度'}</span><span class="ar">▾</span></button>`+
  `<div class="fpanel"${state.fopen?'':' hidden'}>`+(act.length?'<button class="fclr" id="fclr">清除全部篩選</button>':'')+
- chipRow('人數','p',[['','人數不限'],['1','1 人'],['2','2 人'],['3','3 人'],['4','4 人'],['5','5 人'],['6','6 人以上']],false)+
- chipRow('最佳人數','b',[['','最佳不限'],['1','最佳 1'],['2','最佳 2'],['3','最佳 3'],['4','最佳 4'],['5','最佳 5'],['6','最佳 6+']],false)+
+ chipRow(`人數<button class="btog${state.bo?' on':''}" id="btog" aria-pressed="${state.bo}">只看最佳人數</button>`,'p',[['','全部'],['1','1 人'],['2','2 人'],['3','3 人'],['4','4 人'],['5','5 人'],['6','6 人以上']],false)+
  chipRow('類別','type',types.map(t=>[t,t]),true)+chipRow('語言','lang',langs.map(t=>[t,t]),true)+
  chipRow('重度','w',[['','全部'],['輕','輕 (<2)'],['中輕','中輕 (2–3)'],['中重','中重 (3–3.6)'],['重','重 (≥3.6)']],false)+'</div></div>'+
  `<div class="count"><span>${res.length} / ${LIST.games.length} 款</span><span>資料版本 ${esc(LIST.version)}</span></div><div class="grid">`+
  (res.length?res.map(g=>`<button class="gc" data-id="${esc(g.id)}">${g.img?`<img loading="lazy" src="${esc(g.img)}" alt="">`:'<div class="ph"></div>'}<div><div class="t">${esc(g.name)}</div><div class="m">${tys(g).map(t=>`<span class="tag k">${esc(t)}</span>`).join('')}<span class="tag">${esc(g.lang||'')}</span><div class="wt">${[g.weight?'重度 '+g.weight:'',g.tmin?esc(g.tmin)+(g.tmax&&g.tmax!==g.tmin?'–'+esc(g.tmax):'')+' 分':''].filter(Boolean).join('｜')}</div><div class="pp">${[g.sup?'人數 <b>'+esc(g.sup)+'</b>':'',g.rec?'推薦 <b>'+esc(g.rec)+'</b>':'',g.best?'最佳 <b>'+esc(g.best)+'</b>':''].filter(Boolean).join('｜')}</div></div></div></button>`).join(''):'<div class="empty">沒有符合的桌遊</div>')+'</div>';
  setHH();
  $('#ftog').onclick=()=>{state.fopen=!state.fopen;LS.set('filters',state);const y=scrollY;renderList();scrollTo(0,y)};
- if($('#fclr'))$('#fclr').onclick=()=>{state.p='';state.b='';state.type=[];state.lang=[];state.w='';LS.set('filters',state);renderList();scrollTo(0,0)};
+ if($('#fclr'))$('#fclr').onclick=()=>{state.p='';state.bo=false;state.type=[];state.lang=[];state.w='';LS.set('filters',state);renderList();scrollTo(0,0)};
  const qi=$('#q');qi.oninput=()=>{state.q=qi.value;LS.set('filters',state);clearTimeout(qi._t);qi._t=setTimeout(()=>{const p=qi.selectionStart;renderList();const n=$('#q');n.focus();n.setSelectionRange(p,p)},250)};
+ $('#btog').onclick=()=>{state.bo=!state.bo;LS.set('filters',state);const y=scrollY;renderList();scrollTo(0,y)};
  document.querySelectorAll('.chip.so').forEach(c=>c.onclick=()=>{const v=c.dataset.s;if(state.sort===v)state.rev=!state.rev;else{state.sort=v;state.rev=false}LS.set('filters',state);const y=scrollY;renderList();scrollTo(0,y)});
  document.querySelectorAll('.chip[data-k]').forEach(c=>c.onclick=()=>{const k=c.dataset.k,v=c.dataset.v;if(c.dataset.m==='1'){const a=state[k];const i=a.indexOf(v);i>=0?a.splice(i,1):a.push(v)}else state[k]=state[k]===v?'':v;LS.set('filters',state);const y=scrollY;renderList();scrollTo(0,y)});
  document.querySelectorAll('.gc').forEach(b=>b.onclick=()=>{LS.set('listY',scrollY);location.hash='#/g/'+encodeURIComponent(b.dataset.id)});
