@@ -28,6 +28,7 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,38px);mar
 .bar{position:sticky;top:0;z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .lbl{font-size:12px;color:var(--muted);letter-spacing:.08em}
+.lrow{display:flex;align-items:center;gap:6px;height:18px}.f>.lbl,.lrow .lbl{line-height:18px}.chip.mini{padding:0 8px;font-size:11px;line-height:16px;letter-spacing:0}
 input[type=search],select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
 input[type=search]{flex:1 1 220px}
 .filters{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 10px;align-items:end}
@@ -100,14 +101,13 @@ footer{font-size:12px;color:var(--muted);margin-top:24px}
     <span class="count"><span id="shown">0</span> 款</span>
   </div>
   <div class="filters">
-    <div class="f"><span class="lbl" id="l-players">人數</span><details class="ms" id="players"><summary aria-labelledby="l-players">全部</summary><div class="opts"></div></details></div>
+    <div class="f"><div class="lrow"><span class="lbl" id="l-players">人數</span><button class="chip mini" id="bestonly" type="button" aria-pressed="false" title="只列出最佳人數包含所選人數的遊戲">只看最佳人數</button></div><details class="ms" id="players"><summary aria-labelledby="l-players">全部</summary><div class="opts"></div></details></div>
     <div class="f"><span class="lbl" id="l-ftype">類別</span><details class="ms" id="ftype"><summary aria-labelledby="l-ftype">全部</summary><div class="opts"></div></details></div>
     <div class="f"><span class="lbl" id="l-fweight">重度</span><details class="ms" id="fweight"><summary aria-labelledby="l-fweight">全部</summary><div class="opts"></div></details></div>
     <div class="f"><span class="lbl" id="l-ftime">遊玩時間</span><details class="ms" id="ftime"><summary aria-labelledby="l-ftime">全部</summary><div class="opts"></div></details></div>
     <div class="f"><span class="lbl" id="l-fpub">出版社</span><details class="ms" id="fpub"><summary aria-labelledby="l-fpub">全部</summary><div class="opts"></div></details></div>
     <div class="f"><span class="lbl" id="l-flang">語言</span><details class="ms" id="flang"><summary aria-labelledby="l-flang">全部</summary><div class="opts"></div></details></div>
     <div class="f end">
-      <button class="chip" id="bestonly" type="button" aria-pressed="false" title="只列出最佳人數包含所選人數的遊戲">只看最佳人數</button>
       <button class="chip ghost" id="reset" type="button">清除篩選</button>
     </div>
   </div>
